@@ -1,0 +1,33 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Reports
+reports/
+
+# VS Code
+.vscode/
+
+# Environment Variables
+.env
+
+# Build
+build/
+dist/
+*.spec
+
+# PyInstaller
+__pyinstaller__/
