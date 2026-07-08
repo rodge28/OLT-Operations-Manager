@@ -1,8 +1,0 @@
-{
-    "app_name": "OLT Operations Manager",
-    "version": "1.0.0-alpha",
-    "weekend_profile": 999,
-    "max_workers": 5,
-    "ssh_timeout": 15,
-    "log_level": "INFO"
-}

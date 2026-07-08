@@ -1,0 +1,23 @@
+{
+    "application": {
+        "name": "OLT Operations Manager",
+        "version": "0.1.0-alpha",
+        "theme": "darkly"
+    },
+    "database": {
+        "path": "database/olt_manager.db"
+    },
+    "logging": {
+        "level": "INFO",
+        "directory": "logs"
+    },
+    "ssh": {
+        "port": 22,
+        "timeout": 15,
+        "workers": 5
+    },
+    "traffic": {
+        "command_mode": "name",
+        "default_restore": true
+    }
+}
