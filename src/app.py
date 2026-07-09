@@ -2,25 +2,25 @@ from __future__ import annotations
 
 from core.config_manager import ConfigManager
 from core.logger import setup_logger
-
+from gui.main_window import MainWindow
+from db.database import DatabaseManager
+import db.models
 
 def main():
 
     logger = setup_logger()
 
     config = ConfigManager()
+    database = DatabaseManager()
+    database.create_database()
 
     logger.info("=" * 50)
     logger.info(config.get("application", "name"))
-    logger.info(
-        "Version: %s",
-        config.get("application", "version"),
-    )
+    logger.info("Version: %s", config.get("application", "version"))
     logger.info("=" * 50)
 
-    print()
-    print("Application initialized successfully.")
-    print()
+    app = MainWindow()
+    app.run()
 
 
 if __name__ == "__main__":
