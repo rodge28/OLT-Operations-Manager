@@ -32,7 +32,10 @@ class DatabaseManager:
             autoflush=False,
             autocommit=False
         )
-
+        print(f"Database file: {db_file}")
     def create_database(self):
 
         Base.metadata.create_all(self.engine)
+
+    def get_session(self):
+        return self.Session()

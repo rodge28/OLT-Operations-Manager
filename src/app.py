@@ -13,6 +13,11 @@ def main():
     config = ConfigManager()
     database = DatabaseManager()
     database.create_database()
+    session = database.get_session()
+
+    from db.seed import seed_clusters
+
+    seed_clusters(session)
 
     logger.info("=" * 50)
     logger.info(config.get("application", "name"))
