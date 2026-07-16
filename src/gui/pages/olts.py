@@ -3,7 +3,7 @@ import ttkbootstrap as ttk
 from db.database import DatabaseManager
 from gui.dialogs.add_olt_dialog import AddOLTDialog
 from services.olt_service import OLTService
-
+from tkinter import messagebox
 
 class OLTPage(ttk.Frame):
 
@@ -64,23 +64,40 @@ class OLTPage(ttk.Frame):
         # -----------------------------------------------------------------
 
         button_frame = ttk.Frame(self)
-        button_frame.pack(
-            fill="x",
-            padx=20,
-            pady=10
-        )
+        button_frame.pack(fill="x", padx=20, pady=10)
 
         ttk.Button(
             button_frame,
-            text="Add OLT",
+            text="➕ Add",
             bootstyle="success",
             command=self.add_olt
         ).pack(side="left", padx=5)
 
         ttk.Button(
             button_frame,
-            text="Refresh",
+            text="✏ Edit",
+            bootstyle="warning",
+            command=self.edit_olt
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            button_frame,
+            text="🗑 Delete",
+            bootstyle="danger",
+            command=self.delete_olt
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            button_frame,
+            text="🔄 Refresh",
             command=self.load_data
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            button_frame,
+            text="🔌 Test SSH",
+            bootstyle="info",
+            command=self.test_ssh
         ).pack(side="left", padx=5)
 
     def load_data(self):
@@ -110,4 +127,23 @@ class OLTPage(ttk.Frame):
             self,
             self.service.session,
             self.load_data
+        )
+    def edit_olt(self):
+        messagebox.showinfo(
+        "Coming Soon",
+        "Edit OLT will be implemented next."
+        )
+
+
+    def delete_olt(self):
+        messagebox.showinfo(
+        "Coming Soon",
+        "Delete OLT will be implemented next."
+        )
+
+
+    def test_ssh(self):
+        messagebox.showinfo(
+        "Coming Soon",
+        "Test SSH will be implemented next."
         )
