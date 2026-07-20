@@ -2,7 +2,7 @@ from drivers.huawei_driver import HuaweiDriver
 from utils.version_parser import VersionParser
 
 driver = HuaweiDriver(
-    host="172.29.1.35",
+    host="172.29.1.59",
     username="root",
     password="admin123"
 )

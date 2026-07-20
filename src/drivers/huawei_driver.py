@@ -1,4 +1,4 @@
-from netmiko import ConnectHandler
+from drivers.huawei_keyboard_interactive import HuaweiOLTSSH
 
 
 class HuaweiDriver:
@@ -19,7 +19,7 @@ class HuaweiDriver:
         self.connection = None
 
     def connect(self):
-        self.connection = ConnectHandler(**self.device)
+        self.connection = HuaweiOLTSSH(**self.device)
         self.connection.enable()
         # Disable interactive prompts
         self.connection.send_command_timing("undo smart")
