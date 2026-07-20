@@ -1,82 +1,80 @@
-from drivers.huawei_keyboard_interactive import HuaweiOLTSSH
+from drivers.huawei_shell import HuaweiShell
 
 
 class HuaweiDriver:
+    """
+    High-level Huawei MA5800 driver.
+
+    This class wraps HuaweiShell and exposes easy-to-use methods
+    for the rest of the application.
+    """
 
     def __init__(self, host, username, password, port=22):
 
-        self.device = {
-            "device_type": "huawei_olt",
-            "host": host,
-            "username": username,
-            "password": password,
-            "port": port,
-            "use_keys": False,
-            "allow_agent": False,
-            "fast_cli": False,
-        }
+        self.shell = HuaweiShell(
+            host=host,
+            username=username,
+            password=password,
+            port=port,
+        )
 
-        self.connection = None
+    # ----------------------------
+    # Connection
+    # ----------------------------
 
     def connect(self):
-        self.connection = HuaweiOLTSSH(**self.device)
-        self.connection.enable()
-        # Disable interactive prompts
-        self.connection.send_command_timing("undo smart")
+        self.shell.connect()
 
     def disconnect(self):
-        try:
-            # Restore the default CLI behavior
-            self.connection.send_command_timing("smart")
-        except Exception:
-            pass
+        self.shell.disconnect()
 
-        if self.connection:
-            try:
-                self.connection.disconnect()
-            except Exception:
-                pass
+    # ----------------------------
+    # Generic command
+    # ----------------------------
 
-    def enable(self):
-        """Enter privileged mode."""
-        self.connection.enable()
+    def run(self, command):
+        return self.shell.send_command(command)
 
-    def send_command(self, command, privilege=False):
-        """
-        Execute a command.
-
-        If privilege=True, automatically enter enable mode first.
-        """
-        if privilege:
-            self.enable()
-
-        return self.connection.send_command(
-            command,
-            read_timeout=60
-        )
+    # ----------------------------
+    # Information
+    # ----------------------------
 
     def get_version(self):
-        return self.send_command("display version")
+        return self.run("display version")
 
     def get_hostname(self):
-        output = self.send_command(
-            "display current-configuration | include sysname",
-            privilege=True
+        return self.run(
+            "display current-configuration | include sysname"
         )
 
-        return output
+    # ----------------------------
+    # ONU
+    # ----------------------------
 
     def find_ont_by_serial(self, serial):
-
-        return self.send_command(
-            f"display ont info by-sn {serial}",
-            privilege=True
+        return self.run(
+            f"display ont info by-sn {serial}"
         )
 
+    def display_ont_info(self, fspon, ont_id):
+        return self.run(
+            f"display ont info {fspon} {ont_id}"
+        )
+
+    # ----------------------------
+    # Service Port
+    # ----------------------------
 
     def find_service_port(self, fspon):
+        return self.run(
+            f"display service-port port {fspon}"
+        )
 
-        return self.send_command(
-            f"display service-port port {fspon}",
-            privilege=True
+    # ----------------------------
+    # Optical
+    # ----------------------------
+
+    def display_optical_info(self, fspon, ont_id):
+        return self.run(
+            f"display ont optical-info {fspon} {ont_id}"
         )

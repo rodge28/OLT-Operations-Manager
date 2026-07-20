@@ -1,6 +1,5 @@
 from typing import Any, List, Tuple
 
-from numpy.strings import title
 from paramiko import SSHClient, Transport
 from netmiko.huawei.huawei import HuaweiSSH
 
@@ -47,17 +46,13 @@ class HuaweiInteractiveSSHClient(SSHClient):
         transport = self.get_transport()
         assert isinstance(transport, Transport)
 
-        transport.auth_interactive(
+        result = transport.auth_interactive(
             username,
             handler=self.huawei_banner_handler,
         )
+        print("AUTH RESULT:", result)
 
 # ==========================================
 # Step 4 starts here
 # ==========================================
 
-class HuaweiOLTSSH(HuaweiSSH):
-
-    def _get_ssh_client_instance(self):
-        print(">>> Using HuaweiInteractiveSSHClient <<<")
-        return HuaweiInteractiveSSHClient()
