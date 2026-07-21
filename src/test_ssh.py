@@ -8,7 +8,7 @@ driver = HuaweiDriver(
 
 driver.connect()
 
-version = driver.get_version()
-print(version)
+ont = driver.find_ont_by_serial("48575443DA250FB1")
+print(ont)
 
 driver.disconnect()

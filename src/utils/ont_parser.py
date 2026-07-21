@@ -2,9 +2,12 @@ import re
 
 
 class ONTParser:
+    """
+    Parses Huawei MA5800 ONT command outputs.
+    """
 
     @staticmethod
-    def parse(output):
+    def parse_search(output):
 
         fields = {
             "fsp": r"F/S/P\s*:\s*(.+)",
@@ -23,12 +26,40 @@ class ONTParser:
         data = {}
 
         for key, pattern in fields.items():
+            match = re.search(pattern, output)
 
-            m = re.search(pattern, output)
+            if match:
+                data[key] = match.group(1).strip()
 
-            if m:
-                data[key] = m.group(1).strip()
+        # ---------------------------------------
+        # Parse F/S/P into individual values
+        # ---------------------------------------
+
+        fsp = data.get("fsp")
+
+        if fsp:
+            try:
+                frame, slot, port = fsp.split("/")
+
+                data["frame"] = int(frame)
+                data["slot"] = int(slot)
+                data["port"] = int(port)
+
+            except ValueError:
+                pass
 
         data["found"] = "F/S/P" in output
 
         return data
+
+    @staticmethod
+    def parse_info(output):
+        return {}
+
+    @staticmethod
+    def parse_optical(output):
+        return {}
+
+    @staticmethod
+    def parse_service_port(output):
+        return {}

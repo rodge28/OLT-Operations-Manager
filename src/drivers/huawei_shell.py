@@ -47,6 +47,8 @@ class HuaweiShell:
         # Wait for CLI prompt
         self._read_until_prompt()
 
+        # Enter enable mode
+        self.send_command("enable")
         # Disable Smart interaction
         self.send_command("undo smart")
 
@@ -73,7 +75,6 @@ class HuaweiShell:
     # -------------------------------------------------
 
     def send_command(self, command):
-        self._clear_buffer()
 
         self.channel.send(command + "\n")
 
@@ -85,9 +86,6 @@ class HuaweiShell:
     # Helpers
     # -------------------------------------------------
 
-    def _clear_buffer(self):
-        while self.channel.recv_ready():
-            self.channel.recv(65535)
 
     def _read_until_prompt(self, timeout=60):
 
@@ -113,8 +111,10 @@ class HuaweiShell:
                     continue
 
                 # Huawei prompt
-                if output.rstrip().endswith(">"):
-                    return output
+                clean = output.replace("\x00", "").rstrip()
+
+                if clean.endswith(">") or clean.endswith("#"):
+                    return clean
 
             if time.time() - start > timeout:
                 raise TimeoutError(output)
@@ -122,22 +122,23 @@ class HuaweiShell:
             time.sleep(0.05)
 
     def _clean_output(self, command, output):
-        """
-        Remove command echo and prompt.
-        """
 
         lines = output.splitlines()
-
         cleaned = []
 
         for line in lines:
 
-            if line.strip() == command.strip():
+            line = line.replace("\x00", "").strip()
+
+            if not line:
                 continue
 
-           # if self.PROMPT_REGEX.match(line):
-           #     continue
+            if line == command:
+                continue
+
+            if line.endswith(">") or line.endswith("#"):
+                continue
 
             cleaned.append(line)
 
-        return "\n".join(cleaned).strip()
+        return "\n".join(cleaned)

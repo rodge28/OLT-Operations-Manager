@@ -1,5 +1,6 @@
 from drivers.huawei_shell import HuaweiShell
 from utils.version_parser import VersionParser
+from utils.ont_parser import ONTParser
 
 
 class HuaweiDriver:
@@ -54,11 +55,14 @@ class HuaweiDriver:
     # ----------------------------
     # ONU
     # ----------------------------
-
     def find_ont_by_serial(self, serial):
-        return self.run(
+
+        output = self.run(
             f"display ont info by-sn {serial}"
         )
+
+        return ONTParser.parse_search(output)
+
 
     def display_ont_info(self, fspon, ont_id):
         return self.run(
