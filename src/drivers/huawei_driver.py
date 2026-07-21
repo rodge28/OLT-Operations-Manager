@@ -1,4 +1,5 @@
 from drivers.huawei_shell import HuaweiShell
+from utils.version_parser import VersionParser
 
 
 class HuaweiDriver:
@@ -40,7 +41,10 @@ class HuaweiDriver:
     # ----------------------------
 
     def get_version(self):
-        return self.run("display version")
+
+        output = self.run("display version")
+
+        return VersionParser.parse(output)
 
     def get_hostname(self):
         return self.run(

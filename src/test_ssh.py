@@ -8,6 +8,7 @@ driver = HuaweiDriver(
 
 driver.connect()
 
-print(driver.get_version())
+version = driver.get_version()
+print(version)
 
 driver.disconnect()
