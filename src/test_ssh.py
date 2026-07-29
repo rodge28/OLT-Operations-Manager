@@ -1,35 +1,27 @@
-from drivers.huawei_driver import HuaweiDriver
+from db.database import DatabaseManager
+from services.olt_service import OLTService
 from services.subscriber_service import SubscriberService
 
-HOST = "172.29.1.59"
-USERNAME = "defutz"
-PASSWORD = "Avchi-s@d1k123."
+SERIAL = "4857544324F4ACAB"
+OLT_ID = 1
 
-SERIAL = "48575443DA250FB1"
+db = DatabaseManager()
+session = db.get_session()
 
+try:
+    olt_service = OLTService(session)
+    subscriber_service = SubscriberService(olt_service)
 
-def main():
-
-    driver = HuaweiDriver(
-        host=HOST,
-        username=USERNAME,
-        password=PASSWORD,
+    subscriber = subscriber_service.find_by_serial(
+        OLT_ID,
+        SERIAL,
     )
 
-    try:
-        print("Connecting...")
-        driver.connect()
-
-        service = SubscriberService(driver)
-
-        subscriber = service.find(SERIAL)
-
+    if subscriber:
+        print("\nSubscriber Found\n")
         print(subscriber)
+    else:
+        print("Subscriber not found.")
 
-    finally:
-        print("Disconnecting...")
-        driver.disconnect()
-
-
-if __name__ == "__main__":
-    main()
+finally:
+    session.close()

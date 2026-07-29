@@ -1,4 +1,3 @@
-from db.database import DatabaseManager
 from db.models import OLT
 from db.repositories import OLTRepository
 
@@ -6,13 +5,14 @@ from db.repositories import OLTRepository
 class OLTService:
 
     def __init__(self, session):
-
         self.session = session
-
         self.repository = OLTRepository(session)
 
     def get_all(self):
         return self.repository.get_all()
+
+    def get_by_id(self, olt_id: int):
+        return self.repository.get_by_id(olt_id)
 
     def add(
         self,
@@ -21,7 +21,7 @@ class OLTService:
         ip_address,
         username,
         password,
-        ssh_port=22
+        ssh_port=22,
     ):
 
         olt = OLT(

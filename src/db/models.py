@@ -74,3 +74,22 @@ class OLT(Base):
         server_default=func.now(),
         onupdate=func.now()
     )
+
+class Package(Base):
+    __tablename__ = "packages"
+
+    id = Column(Integer, primary_key=True)
+
+    name = Column(String(50), nullable=False)
+    speed = Column(Integer, nullable=False)
+
+    profile_name = Column(String(100), nullable=False)
+    traffic_table = Column(Integer, nullable=False)
+
+    def __repr__(self):
+        return (
+            f"<Package("
+            f"name='{self.name}', "
+            f"profile='{self.profile_name}', "
+            f"table={self.traffic_table})>"
+        )

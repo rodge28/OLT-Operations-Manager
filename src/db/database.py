@@ -35,6 +35,7 @@ class DatabaseManager:
         print(f"Database file: {db_file}")
     def create_database(self):
 
+        import db.models
         Base.metadata.create_all(self.engine)
 
     def get_session(self):
