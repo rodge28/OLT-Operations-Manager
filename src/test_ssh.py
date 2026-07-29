@@ -1,14 +1,35 @@
 from drivers.huawei_driver import HuaweiDriver
+from services.subscriber_service import SubscriberService
 
-driver = HuaweiDriver(
-    host="172.29.1.59",
-    username="defutz",
-    password="Avchi-s@d1k123.",
-)
+HOST = "172.29.1.59"
+USERNAME = "defutz"
+PASSWORD = "Avchi-s@d1k123."
 
-driver.connect()
+SERIAL = "48575443DA250FB1"
 
-ont = driver.find_ont_by_serial("48575443DA250FB1")
-print(ont)
 
-driver.disconnect()
+def main():
+
+    driver = HuaweiDriver(
+        host=HOST,
+        username=USERNAME,
+        password=PASSWORD,
+    )
+
+    try:
+        print("Connecting...")
+        driver.connect()
+
+        service = SubscriberService(driver)
+
+        subscriber = service.find(SERIAL)
+
+        print(subscriber)
+
+    finally:
+        print("Disconnecting...")
+        driver.disconnect()
+
+
+if __name__ == "__main__":
+    main()

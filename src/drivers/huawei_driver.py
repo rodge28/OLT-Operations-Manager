@@ -1,6 +1,7 @@
 from drivers.huawei_shell import HuaweiShell
 from utils.version_parser import VersionParser
 from utils.ont_parser import ONTParser
+from utils.service_port_parser import ServicePortParser
 
 
 class HuaweiDriver:
@@ -73,12 +74,35 @@ class HuaweiDriver:
     # Service Port
     # ----------------------------
 
-    def find_service_port(self, fspon):
-        return self.run(
-            f"display service-port port {fspon}"
+    def get_service_port(self, fsp: str, ont_id: int):
+        """
+        Returns complete service-port information for an ONT.
+        """
+
+        # Command 1
+        output = self.run(
+            f"display service-port port {fsp}"
         )
 
-    # ----------------------------
+        service = ServicePortParser.find_by_ont(
+            output,
+            ont_id,
+        )
+
+        if not service:
+            return None
+
+        # Command 2
+        output = self.run(
+            f"display service-port {service['service_port']}"
+        )
+
+        details = ServicePortParser.parse_details(output)
+
+        service.update(details)
+
+        return service
+        # ----------------------------
     # Optical
     # ----------------------------
 
@@ -86,3 +110,45 @@ class HuaweiDriver:
         return self.run(
             f"display ont optical-info {fspon} {ont_id}"
         )
+
+    # ----------------------------
+    # Traffic Profile
+    # ----------------------------
+
+    def change_traffic_profile(
+        self,
+        service_port: int,
+        profile_name: str,
+    ):
+        raise NotImplementedError
+    def change_traffic_profile(
+        self,
+        service_port: int,
+        profile_name: str,
+    ):
+        """
+        Change both inbound and outbound traffic profiles
+        of a service-port.
+        """
+
+        self.run(
+            f"service-port {service_port} "
+            f"inbound traffic-table name {profile_name}"
+        )
+
+        self.run(
+            f"service-port {service_port} "
+            f"outbound traffic-table name {profile_name}"
+        )
+
+        return True
+    def get_service_port_details(self, service_port: int):
+        """
+        Returns service-port details.
+        """
+
+        output = self.run(
+            f"display service-port {service_port}"
+        )
+
+        return ServicePortParser.parse_details(output)

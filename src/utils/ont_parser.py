@@ -2,64 +2,105 @@ import re
 
 
 class ONTParser:
-    """
-    Parses Huawei MA5800 ONT command outputs.
-    """
 
     @staticmethod
-    def parse_search(output):
+    def parse_search(output: str) -> dict:
+        """
+        Parse:
+            display ont info by-sn <serial>
+        """
+
+        if "F/S/P" not in output:
+            return {
+                "found": False
+            }
+
+        data = {
+            "found": True
+        }
 
         fields = {
             "fsp": r"F/S/P\s*:\s*(.+)",
-            "ont_id": r"ONT-ID\s*:\s*(.+)",
+            "ont_id": r"ONT-ID\s*:\s*(\d+)",
             "run_state": r"Run state\s*:\s*(.+)",
             "config_state": r"Config state\s*:\s*(.+)",
             "match_state": r"Match state\s*:\s*(.+)",
             "serial": r"SN\s*:\s*([A-Fa-f0-9]+)",
             "description": r"Description\s*:\s*(.+)",
+            "line_profile_id": r"Line profile ID\s*:\s*(\d+)",
             "line_profile": r"Line profile name\s*:\s*(.+)",
-            "service_profile": r"Service profile name\s*:\s*(.+)",
             "last_down": r"Last down cause\s*:\s*(.+)",
             "online_duration": r"ONT online duration\s*:\s*(.+)",
+            "distance": r"ONT distance\(m\)\s*:\s*(\d+)",
+            "last_distance": r"ONT last distance\(m\)\s*:\s*(\d+)",
+            "cpu": r"CPU occupation\s*:\s*(\d+)%",
+            "memory": r"Memory occupation\s*:\s*(\d+)%",
+            "temperature": r"Temperature\s*:\s*(\d+)",
         }
 
-        data = {}
-
         for key, pattern in fields.items():
+
             match = re.search(pattern, output)
 
-            if match:
-                data[key] = match.group(1).strip()
+            if not match:
+                continue
 
-        # ---------------------------------------
-        # Parse F/S/P into individual values
-        # ---------------------------------------
+            value = match.group(1).strip()
 
-        fsp = data.get("fsp")
+            if key in (
+                "ont_id",
+                "distance",
+                "last_distance",
+                "cpu",
+                "memory",
+                "temperature",
+                "line_profile_id",
+            ):
+                value = int(value)
 
-        if fsp:
-            try:
-                frame, slot, port = fsp.split("/")
+            data[key] = value
 
-                data["frame"] = int(frame)
-                data["slot"] = int(slot)
-                data["port"] = int(port)
+        # Parse F/S/P
+        if "fsp" in data:
+            frame, slot, port = data["fsp"].split("/")
 
-            except ValueError:
-                pass
+            data["frame"] = int(frame)
+            data["slot"] = int(slot)
+            data["port"] = int(port)
 
-        data["found"] = "F/S/P" in output
+        # Parse Vendor / Model
+        vendor_model = re.search(
+            r"\(([A-Za-z0-9]+)-([A-Za-z0-9]+)\)",
+            output,
+        )
+
+        if vendor_model:
+            data["vendor"] = vendor_model.group(1)
+            data["model"] = vendor_model.group(2)
+
+        # Parse Description
+        data.update(
+            ONTParser.parse_description(
+                data.get("description", "")
+            )
+        )
 
         return data
 
     @staticmethod
-    def parse_info(output):
-        return {}
+    def parse_description(description: str) -> dict:
 
-    @staticmethod
-    def parse_optical(output):
-        return {}
+        result = {
+            "account_number": None,
+            "customer_name": description,
+        }
 
-    @staticmethod
-    def parse_service_port(output):
-        return {}
+        if "/" not in description:
+            return result
+
+        account, customer = description.split("/", 1)
+
+        result["account_number"] = account.strip()
+        result["customer_name"] = customer.strip()
+
+        return result
