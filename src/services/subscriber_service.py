@@ -77,3 +77,51 @@ class SubscriberService:
 
         finally:
             driver.disconnect()
+
+    def change_package(
+        self,
+        olt_id: int,
+        serial: str,
+        package,
+    ):
+        """
+        Change subscriber traffic profile.
+        """
+
+        subscriber = self.find_by_serial(
+            olt_id,
+            serial,
+        )
+
+        if subscriber is None:
+            raise ValueError("Subscriber not found.")
+
+        olt = self.olt_service.get_by_id(olt_id)
+
+        driver = HuaweiDriver(
+            olt.ip_address,
+            olt.username,
+            olt.password,
+        )
+
+        driver.connect()
+
+        try:
+
+            driver.change_service_port_profile(
+                service_port=subscriber.service_port,
+                inbound_profile=package.profile,
+                outbound_profile=package.profile,
+            )
+
+            updated = driver.get_service_port_detail(
+                subscriber.service_port
+            )
+
+            return (
+                updated["inbound_profile"] == package.profile
+                and updated["outbound_profile"] == package.profile
+            )
+
+        finally:
+            driver.disconnect()

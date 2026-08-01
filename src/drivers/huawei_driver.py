@@ -2,7 +2,8 @@ from drivers.huawei_shell import HuaweiShell
 from utils.version_parser import VersionParser
 from utils.ont_parser import ONTParser
 from utils.service_port_parser import ServicePortParser
-
+from utils.service_port_detail_parser import ServicePortParser
+from utils.service_port_detail_parser import ServicePortDetailParser
 
 class HuaweiDriver:
     """
@@ -152,3 +153,41 @@ class HuaweiDriver:
         )
 
         return ServicePortParser.parse_details(output)
+
+    def change_service_port_profile(
+        self,
+        service_port: int,
+        inbound_profile: str,
+        outbound_profile: str,
+    ):
+        """
+        Change inbound/outbound traffic table.
+        """
+
+        self.send_command("system-view")
+
+        output = self.send_command(
+            f"service-port {service_port} "
+            f"inbound traffic-table name {inbound_profile} "
+            f"outbound traffic-table name {outbound_profile}"
+        )
+
+        self.send_command("commit")
+        self.send_command("quit")
+
+        return output
+
+    def get_service_port_detail(self, service_port):
+        output = self.send_command(
+            f"display service-port {service_port}"
+        )
+
+        return parse_service_port_detail(output)
+
+    def get_service_port_detail(self, service_port: int):
+
+        output = self.send_command(
+            f"display service-port {service_port}"
+        )
+
+        return ServicePortDetailParser.parse(output)

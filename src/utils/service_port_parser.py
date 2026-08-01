@@ -63,7 +63,7 @@ class ServicePortParser:
 
         return None
     @staticmethod
-    def parse_details(output):
+    def parse(output):
 
         fields = {
             "service_port": r"Index\s*:\s*(\d+)",

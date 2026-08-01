@@ -1,71 +1,66 @@
 import re
 
 
-class ServicePortParser:
-    """
-    Parses:
-        display service-port port <fsp>
-
-    Returns one entry per service-port.
-    """
+class ServicePortDetailParser:
 
     @staticmethod
     def parse(output: str):
 
-        entries = []
+        patterns = {
+            "service_port": r"Index\s*:\s*(\d+)",
+            "vlan": r"VLAN ID\s*:\s*(\d+)",
+            "frame": r"F/S/P\s*:\s*(\d+)/(\d+)/(\d+)",
+            "ont_id": r"ONT ID\s*:\s*(\d+)",
+            "gem": r"GEM port index\s*:\s*(\d+)",
+            "rx": r"RX\s*:\s*(\d+)",
+            "tx": r"TX\s*:\s*(\d+)",
+            "inbound_profile": r"Inbound table name\s*:\s*(.+)",
+            "outbound_profile": r"Outbound table name\s*:\s*(.+)",
+            "admin_status": r"Admin status\s*:\s*(.+)",
+            "state": r"State\s*:\s*(.+)",
+            "description": r"Description\s*:\s*(.*)",
+        }
 
-        pattern = re.compile(
-            r"^\s*"
-            r"(\d+)\s+"           # INDEX
-            r"(\d+)\s+"           # VLAN
-            r"\S+\s+"             # VLAN ATTR
-            r"gpon\s+"            # PORT TYPE
-            r"(\d+)/(\d+)\s*/(\d+)\s+"  # F/S/P
-            r"(\d+)\s+"           # ONT ID (VPI)
-            r"(\d+)\s+"           # GEM (VCI)
-            r"\S+\s+"             # FLOW TYPE
-            r"(\d+)\s+"           # FLOW PARA
-            r"(\d+)\s+"           # RX
-            r"(\d+)\s+"           # TX
-            r"(\w+)",             # STATE
-            re.MULTILINE,
-        )
+        data = {}
 
-        for match in pattern.finditer(output):
+        # Simple fields
+        for key in (
+            "service_port",
+            "vlan",
+            "ont_id",
+            "gem",
+            "rx",
+            "tx",
+            "inbound_profile",
+            "outbound_profile",
+            "admin_status",
+            "state",
+            "description",
+        ):
+            m = re.search(patterns[key], output)
 
-            entries.append({
+            if m:
+                value = m.group(1).strip()
 
-                "service_port": int(match.group(1)),
-                "vlan": int(match.group(2)),
+                if key in (
+                    "service_port",
+                    "vlan",
+                    "ont_id",
+                    "gem",
+                    "rx",
+                    "tx",
+                ):
+                    value = int(value)
 
-                "frame": int(match.group(3)),
-                "slot": int(match.group(4)),
-                "port": int(match.group(5)),
+                data[key] = value
 
-                "fsp": f"{match.group(3)}/{match.group(4)}/{match.group(5)}",
+        # F/S/P
+        m = re.search(patterns["frame"], output)
 
-                "ont_id": int(match.group(6)),
-                "gem": int(match.group(7)),
+        if m:
+            data["frame"] = int(m.group(1))
+            data["slot"] = int(m.group(2))
+            data["port"] = int(m.group(3))
+            data["fsp"] = f"{m.group(1)}/{m.group(2)}/{m.group(3)}"
 
-                "flow": int(match.group(8)),
-
-                "rx": int(match.group(9)),
-                "tx": int(match.group(10)),
-
-                "state": match.group(11),
-
-            })
-
-        return entries
-
-    @staticmethod
-    def find_by_ont(output: str, ont_id: int):
-
-        ports = ServicePortParser.parse(output)
-
-        for port in ports:
-
-            if port["ont_id"] == ont_id:
-                return port
-
-        return None
+        return data
