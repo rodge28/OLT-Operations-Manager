@@ -1,5 +1,6 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+from ttkbootstrap.dialogs import Messagebox
 
 
 class ONUPage(ttk.Frame):
@@ -156,6 +157,7 @@ class ONUPage(ttk.Frame):
             text="Change Package",
             bootstyle=SUCCESS,
             state=DISABLED,
+            command=self.change_package,
         )
 
         self.change_button.grid(
@@ -163,6 +165,18 @@ class ONUPage(ttk.Frame):
             column=1,
             padx=10,
         )
+        packages = self.package_service.get_all()
+
+        self.package_map = {}
+
+        values = []
+
+        for package in packages:
+
+            values.append(package.name)
+            self.package_map[package.name] = package
+
+        self.package_combo["values"] = values
 
     # =====================================================
 
@@ -246,3 +260,48 @@ class ONUPage(ttk.Frame):
         self.change_button.config(state=NORMAL)
 
         self.status.config(text="Subscriber found.")
+
+        self.current_subscriber = subscriber
+
+
+    def get_selected_package(self):
+
+        name = self.package_combo.get()
+
+        return self.package_map.get(name)
+
+
+    def change_package(self):
+
+        package = self.get_selected_package()
+
+        if package is None:
+
+            Messagebox.show_warning(
+                "Please select a package.",
+                "No Package Selected"
+            )
+
+            return
+
+        current_profile = self.current_subscriber.inbound_profile
+
+        message = (
+            f"Subscriber : {self.current_subscriber.customer_name}\n\n"
+            f"Service Port : {self.current_subscriber.service_port}\n\n"
+            f"Current Package\n"
+            f"{current_profile}\n\n"
+            f"New Package\n"
+            f"{package.profile_name}\n\n"
+            "Continue?"
+        )
+
+        answer = Messagebox.yesno(
+            title="Confirm Package Change",
+            message=message,
+        )
+
+        if answer != "Yes":
+            return
+
+        print("Confirmed!")

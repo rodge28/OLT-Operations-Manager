@@ -4,7 +4,7 @@ import re
 class ServicePortDetailParser:
 
     @staticmethod
-    def parse(output: str):
+    def parse_details(output: str):
 
         patterns = {
             "service_port": r"Index\s*:\s*(\d+)",

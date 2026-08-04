@@ -1,5 +1,6 @@
 from drivers.huawei_shell import HuaweiShell
 
+from utils.service_port_parser import ServicePortParser
 from utils.version_parser import VersionParser
 from utils.ont_parser import ONTParser
 from utils.service_port_detail_parser import ServicePortDetailParser
@@ -92,7 +93,7 @@ class HuaweiDriver:
             f"display service-port port {fsp}"
         )
 
-        service = ServicePortDetailParser.find_by_ont(
+        service = ServicePortParser.find_by_ont(
             output,
             ont_id,
         )
