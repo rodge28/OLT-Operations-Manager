@@ -19,9 +19,9 @@ def main():
         return
 
     driver = HuaweiDriver(
-        host=olt.ip_address,
-        username=olt.username,
-        password=olt.password,
+        host="172.29.1.35",
+        username="root",
+        password="admin123",
     )
 
     print(f"Connecting to {olt.hostname} ({olt.ip_address})...")

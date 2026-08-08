@@ -86,7 +86,39 @@ class HuaweiShell:
     # Helpers
     # -------------------------------------------------
 
+    # -------------------------------------------------
+    # Configuration mode
+    # -------------------------------------------------
 
+    def enter_config_mode(self):
+        """
+        Enter Huawei MA5800 configuration mode.
+
+        Privileged mode:
+            LCN-301#
+
+        Configuration mode:
+            LCN-301(config)#
+        """
+
+        output = self.send_command("config")
+
+        return output
+
+    def exit_config_mode(self):
+        """
+        Exit Huawei MA5800 configuration mode.
+
+        Configuration mode:
+            LCN-301(config)#
+
+        Back to privileged mode:
+            LCN-301#
+        """
+
+        output = self.send_command("quit")
+
+        return output
     def _read_until_prompt(self, timeout=60):
 
         output = ""

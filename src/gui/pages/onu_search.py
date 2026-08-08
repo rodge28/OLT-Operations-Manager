@@ -273,6 +273,10 @@ class ONUPage(ttk.Frame):
 
     def change_package(self):
 
+        # -------------------------------------------------
+        # Get selected package
+        # -------------------------------------------------
+
         package = self.get_selected_package()
 
         if package is None:
@@ -284,15 +288,38 @@ class ONUPage(ttk.Frame):
 
             return
 
+        # -------------------------------------------------
+        # Current package
+        # -------------------------------------------------
+
         current_profile = self.current_subscriber.inbound_profile
+        new_profile = package.profile_name
+        service_port = self.current_subscriber.service_port
+
+        # -------------------------------------------------
+        # Prevent unnecessary change
+        # -------------------------------------------------
+
+        if current_profile == new_profile:
+
+            Messagebox.show_info(
+                "The subscriber is already using this package.",
+                "No Change Required"
+            )
+
+            return
+
+        # -------------------------------------------------
+        # Confirmation
+        # -------------------------------------------------
 
         message = (
             f"Subscriber : {self.current_subscriber.customer_name}\n\n"
-            f"Service Port : {self.current_subscriber.service_port}\n\n"
+            f"Service Port : {service_port}\n\n"
             f"Current Package\n"
             f"{current_profile}\n\n"
             f"New Package\n"
-            f"{package.profile_name}\n\n"
+            f"{new_profile}\n\n"
             "Continue?"
         )
 
@@ -304,4 +331,132 @@ class ONUPage(ttk.Frame):
         if answer != "Yes":
             return
 
-        print("Confirmed!")
+        # -------------------------------------------------
+        # Start operation
+        # -------------------------------------------------
+
+        self.status.config(
+            text=f"Changing package to {new_profile}..."
+        )
+
+        self.change_button.config(
+            state=DISABLED
+        )
+
+        self.package_combo.config(
+            state=DISABLED
+        )
+
+        self.update_idletasks()
+
+        try:
+
+            # -------------------------------------------------
+            # Find the OLT
+            # -------------------------------------------------
+
+            target_olt = None
+
+            for olt in self.olt_service.get_all():
+
+                subscriber = self.subscriber_service.find_by_serial(
+                    olt.id,
+                    self.current_subscriber.serial,
+                )
+
+                if subscriber:
+
+                    target_olt = olt
+                    break
+
+            if target_olt is None:
+
+                raise Exception(
+                    "Unable to determine the OLT for this subscriber."
+                )
+
+            # -------------------------------------------------
+            # Execute package change
+            # -------------------------------------------------
+
+            from drivers.huawei_driver import HuaweiDriver
+
+            driver = HuaweiDriver(
+                host=target_olt.ip_address,
+                username=target_olt.username,
+                password=target_olt.password,
+            )
+
+            try:
+
+                driver.connect()
+
+                result = driver.change_traffic_profile(
+                    service_port=service_port,
+                    profile_name=new_profile,
+                )
+
+            finally:
+
+                driver.disconnect()
+
+            # -------------------------------------------------
+            # Check result
+            # -------------------------------------------------
+
+            if result is not True:
+
+                    raise Exception(
+                        "Package change verification failed.\n\n"
+                        f"Expected package:\n"
+                        f"{new_profile}\n\n"
+                        "The OLT did not confirm the package change."
+                )
+            # -------------------------------------------------
+            # Update local subscriber object
+            # -------------------------------------------------
+
+            self.current_subscriber.inbound_profile = new_profile
+            self.current_subscriber.outbound_profile = new_profile
+
+            self.info_labels["Current Package"].config(
+                text=new_profile
+            )
+
+            # -------------------------------------------------
+            # Success
+            # -------------------------------------------------
+
+            self.status.config(
+                text=f"Package changed successfully to {new_profile}."
+            )
+
+            Messagebox.show_info(
+                f"Package successfully changed to:\n\n"
+                f"{new_profile}\n\n"
+                f"Service Port: {service_port}",
+                "Package Change Successful"
+            )
+
+        except Exception as e:
+
+            print("Package change error:", e)
+
+            self.status.config(
+                text="Package change failed."
+            )
+
+            Messagebox.show_error(
+                str(e),
+                "Package Change Failed"
+            )
+
+        finally:
+
+            self.change_button.config(
+                state=NORMAL
+            )
+
+            self.package_combo.config(
+                state="readonly"
+            )

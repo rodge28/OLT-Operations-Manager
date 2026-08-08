@@ -8,7 +8,7 @@ from utils.service_port_detail_parser import ServicePortDetailParser
 
 class HuaweiDriver:
     """
-    High-level Huawei MA5800 Driver
+    High-level Huawei MA5800 Driver.
     """
 
     def __init__(self, host, username, password, port=22):
@@ -113,7 +113,7 @@ class HuaweiDriver:
 
     def get_service_port_detail(self, service_port: int):
         """
-        Returns service-port detail.
+        Returns parsed service-port detail.
         """
 
         output = self.run(
@@ -154,19 +154,59 @@ class HuaweiDriver:
         profile_name: str,
     ):
         """
-        Change inbound/outbound traffic profile.
+        Change inbound and outbound traffic profiles
+        of a service-port.
+
+        Huawei MA5800 workflow:
+
+            LCN-xxx#
+                |
+                | config
+                v
+            LCN-xxx(config)#
+                |
+                | inbound traffic-table
+                | outbound traffic-table
+                v
+            LCN-xxx(config)#
+                |
+                | quit
+                v
+            LCN-xxx#
         """
 
-        self.run("system-view")
+        # ------------------------------------------------------
+        # Enter configuration mode
+        # ------------------------------------------------------
 
-        self.run(
-            f"service-port {service_port} "
-            f"inbound traffic-table name {profile_name} "
-            f"outbound traffic-table name {profile_name}"
-        )
+        self.shell.enter_config_mode()
 
-        self.run("commit")
+        try:
 
-        self.run("quit")
+            # --------------------------------------------------
+            # Change inbound traffic profile
+            # --------------------------------------------------
+
+            self.run(
+                f"service-port {service_port} "
+                f"inbound traffic-table name {profile_name}"
+            )
+
+            # --------------------------------------------------
+            # Change outbound traffic profile
+            # --------------------------------------------------
+
+            self.run(
+                f"service-port {service_port} "
+                f"outbound traffic-table name {profile_name}"
+            )
+
+        finally:
+
+            # --------------------------------------------------
+            # Always leave configuration mode
+            # --------------------------------------------------
+
+            self.shell.exit_config_mode()
 
         return True
